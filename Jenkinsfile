@@ -50,7 +50,7 @@ stages {
                 }
               }
            }
-        }
+      }
         stage('main') {
             when {
               expression {
@@ -75,7 +75,7 @@ stages {
                     reportFiles: 'index.html',
                     reportName: "JaCoCo Report"
                   ])
-                  }
+                }
               }
               stage("Clean code test") {
                   steps {
@@ -91,8 +91,6 @@ stages {
                 }
               }
             }
-            }
         }
-    }
   }
 }
