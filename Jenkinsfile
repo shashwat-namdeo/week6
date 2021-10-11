@@ -20,7 +20,6 @@ stages {
       stage('Build a gradle project') {
         steps {
           sh '''
-          cd Chapter08/sample1
           chmod +x gradlew
           ./gradlew test
           '''
@@ -42,11 +41,10 @@ stages {
                 steps {
                 sh '''
                 pwd
-                cd Chapter08/sample1
                 ./gradlew checkstyleMain
                 '''
                 publishHTML (target: [
-                  reportDir: 'Chapter08/sample1/build/reports/checkstyle',
+                  reportDir: 'build/reports/checkstyle',
                   reportFiles: 'main.html',
                   reportName: "Checkstyle Report"
                 ])
@@ -70,12 +68,11 @@ stages {
                   steps {
                   sh '''
                   pwd
-                  cd Chapter08/sample1
                   ./gradlew jacocoTestCoverageVerification
                   ./gradlew jacocoTestReport
                   '''
                   publishHTML (target: [
-                    reportDir: 'Chapter08/sample1/build/reports/jacoco/test/html',
+                    reportDir: 'build/reports/jacoco/test/html',
                     reportFiles: 'index.html',
                     reportName: "JaCoCo Report"
                   ])
@@ -85,11 +82,10 @@ stages {
                   steps {
                   sh '''
                   pwd
-                  cd Chapter08/sample1
                   ./gradlew checkstyleMain
                   '''
                   publishHTML (target: [
-                    reportDir: 'Chapter08/sample1/build/reports/checkstyle',
+                    reportDir: 'build/reports/checkstyle',
                     reportFiles: 'main.html',
                     reportName: "Checkstyle Report"
                   ])
