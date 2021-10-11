@@ -18,7 +18,7 @@ stages {
     }
   }
       stage('Build a gradle project') {
-        setps {
+        steps {
           sh '''
           cd Chapter08/sample1
           chmod +x gradlew
@@ -67,7 +67,7 @@ stages {
                    }
               }
               stage("Code coverage") {
-                  setps {
+                  steps {
                   sh '''
                   pwd
                   cd Chapter08/sample1
@@ -82,7 +82,7 @@ stages {
                   }
               }
               stage("Clean code test") {
-                  setps {
+                  steps {
                   sh '''
                   pwd
                   cd Chapter08/sample1
