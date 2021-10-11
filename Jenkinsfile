@@ -18,11 +18,13 @@ stages {
     }
   }
       stage('Build a gradle project') {
-        sh '''
-        cd Chapter08/sample1
-        chmod +x gradlew
-        ./gradlew test
-        '''
+        setps {
+          sh '''
+          cd Chapter08/sample1
+          chmod +x gradlew
+          ./gradlew test
+          '''
+        }
       }
         stage('feature') {
             when { 
@@ -36,18 +38,20 @@ stages {
                     echo "I am a feature branch"
                    }
               }
-            stage("Clean code test") {
-              sh '''
-              pwd
-              cd Chapter08/sample1
-              ./gradlew checkstyleMain
-              '''
-              publishHTML (target: [
-                reportDir: 'Chapter08/sample1/build/reports/checkstyle',
-                reportFiles: 'main.html',
-                reportName: "Checkstyle Report"
-              ])
-            }
+              stage("Clean code test") {
+                steps {
+                sh '''
+                pwd
+                cd Chapter08/sample1
+                ./gradlew checkstyleMain
+                '''
+                publishHTML (target: [
+                  reportDir: 'Chapter08/sample1/build/reports/checkstyle',
+                  reportFiles: 'main.html',
+                  reportName: "Checkstyle Report"
+                ])
+                }
+              }
            }
         }
         stage('main') {
@@ -63,30 +67,33 @@ stages {
                    }
               }
               stage("Code coverage") {
-                sh '''
-                pwd
-                cd Chapter08/sample1
-                ./gradlew jacocoTestCoverageVerification
-                ./gradlew jacocoTestReport
-                '''
-                publishHTML (target: [
-                  reportDir: 'Chapter08/sample1/build/reports/jacoco/test/html',
-                  reportFiles: 'index.html',
-                  reportName: "JaCoCo Report"
-                ])
+                  setps {
+                  sh '''
+                  pwd
+                  cd Chapter08/sample1
+                  ./gradlew jacocoTestCoverageVerification
+                  ./gradlew jacocoTestReport
+                  '''
+                  publishHTML (target: [
+                    reportDir: 'Chapter08/sample1/build/reports/jacoco/test/html',
+                    reportFiles: 'index.html',
+                    reportName: "JaCoCo Report"
+                  ])
+                  }
               }
-
               stage("Clean code test") {
-                sh '''
-                pwd
-                cd Chapter08/sample1
-                ./gradlew checkstyleMain
-                '''
-                publishHTML (target: [
-                  reportDir: 'Chapter08/sample1/build/reports/checkstyle',
-                  reportFiles: 'main.html',
-                  reportName: "Checkstyle Report"
-                ])
+                  setps {
+                  sh '''
+                  pwd
+                  cd Chapter08/sample1
+                  ./gradlew checkstyleMain
+                  '''
+                  publishHTML (target: [
+                    reportDir: 'Chapter08/sample1/build/reports/checkstyle',
+                    reportFiles: 'main.html',
+                    reportName: "Checkstyle Report"
+                  ])
+                }
               }
             }
             }
