@@ -23,10 +23,12 @@ stages {
                 return env.GIT_BRANCH == "feature"
               }
             }
-            steps { 
-               echo "I am a feature branch"
-            }
             stages {
+              stage("Declare Branch") {
+                   steps {
+                    echo "I am a feature branch"
+                   }
+              }
               stage("Compile") {
                    steps {
                         sh "./gradlew compileJava"
@@ -110,11 +112,13 @@ stages {
               expression {
                 return env.GIT_BRANCH == "main"
               }
-            } 
-            steps { 
-               echo "I am a main branch"
             }
             stages {
+              stage("Declare Branch") {
+                   steps {
+                    echo "I am a main branch"
+                   }
+              }
               stage("Compile") {
                    steps {
                         sh "./gradlew compileJava"
