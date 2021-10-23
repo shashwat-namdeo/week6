@@ -2,10 +2,40 @@ pipeline {
   agent {
     kubernetes {
       yaml '''
-      spec:
-        containers:
-        - name: gradle
-          image: gradle:6.3-jdk14     
+        apiVersion: v1
+        kind: Pod
+        spec:
+          containers:
+          - name: gradle
+            image: gradle:6.3-jdk14
+            command:
+            - sleep
+            args:
+            - 99d
+            volumeMounts:
+            - name: shared-storage
+              mountPath: /mnt
+          - name: kaniko
+            image: gcr.io/kaniko-project/executor:debug
+            command:
+            - sleep
+            args:
+            - 9999999
+            volumeMounts:
+            - name: shared-storage
+              mountPath: /mnt
+            - name: kaniko-secret
+              mountPath: /kaniko/.docker
+          restartPolicy: Never
+          volumes:
+          - name: kaniko-secret
+            persistentVolumeClaim:
+              claimName: jenkins-pv-claim
+            secret:
+                secretName: dockercred
+                items:
+                - key: .dockerconfigjson
+                  path: config.json    
      '''
     }
   }
@@ -20,7 +50,8 @@ stages {
         steps {
           sh '''
           chmod +x gradlew
-          ./gradlew test
+          ./gradlew build
+          mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
           '''
         }
       }
@@ -35,6 +66,19 @@ stages {
                    steps {
                     echo "I am a feature branch"
                    }
+              }
+              stage('Build Java Image') {
+                container('kaniko') {
+                  stage('Build a Go project') {
+                    sh '''
+                    echo 'FROM openjdk:8-jre' > Dockerfile
+                    echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
+                    echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+                    mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
+                    /kaniko/executor --context `pwd` --destination shashwat248/calculator-feature:0.1 
+                    '''
+                  }
+                }
               }
               stage("Clean code test") {
                 steps {
@@ -62,6 +106,19 @@ stages {
                    steps {
                     echo "I am a main branch"
                    }
+              }
+              stage('Build Java Image') {
+                container('kaniko') {
+                  stage('Build a Go project') {
+                    sh '''
+                    echo 'FROM openjdk:8-jre' > Dockerfile
+                    echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
+                    echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+                    mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
+                    /kaniko/executor --context `pwd` --destination shashwat248/calculator:1.0
+                    '''
+                  }
+                }
               }
               stage("Code coverage") {
                   steps {
