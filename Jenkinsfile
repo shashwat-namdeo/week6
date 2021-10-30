@@ -49,9 +49,11 @@ stages {
   }
   stage('Build a gradle project') {
     steps {
+      sh '''
+      git --version
+      '''
       git 'https://github.com/shuniya0/week6.git'
       sh '''
-      cd Chapter08/sample1
       chmod +x gradlew
       ./gradlew build
       mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
