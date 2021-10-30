@@ -50,7 +50,6 @@ stages {
   stage('Build a gradle project') {
     steps {
       sh '''
-      sudo apt-get install git
       git --version
       '''
       git 'https://github.com/shuniya0/week6.git'
