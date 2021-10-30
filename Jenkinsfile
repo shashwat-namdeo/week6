@@ -49,7 +49,6 @@ stages {
   }
   stage('Build a gradle project') {
     steps {
-      git 'https://github.com/shuniya0/week6.git'
       sh '''
       cd Chapter08/sample1
       chmod +x gradlew
@@ -61,7 +60,7 @@ stages {
         stage('feature') {
             when { 
               expression {
-                return env.GIT_BRANCH == "feature"
+                return env.GIT_BRANCH == "origin/feature"
               }
             }
             stages {
@@ -105,7 +104,7 @@ stages {
         stage('main') {
             when {
               expression {
-                return env.GIT_BRANCH == "main"
+                return env.GIT_BRANCH == "origin/main"
               }
             }
             stages {
