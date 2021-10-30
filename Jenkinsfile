@@ -52,7 +52,7 @@ stages {
       sh '''
       chmod +x gradlew
       ./gradlew build
-      chmod 777 /mnt
+      sudo chmod 777 /mnt
       mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
       '''
     }
