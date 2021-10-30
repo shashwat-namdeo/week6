@@ -13,7 +13,7 @@ pipeline {
             args:
             - 99d
             volumeMounts:
-            - name: shared-storage
+            - name: shared-storage-pv
               mountPath: /mnt
           - name: kaniko
             image: gcr.io/kaniko-project/executor:debug
@@ -22,15 +22,16 @@ pipeline {
             args:
             - 9999999
             volumeMounts:
-            - name: shared-storage
+            - name: shared-storage-pv
               mountPath: /mnt
             - name: kaniko-secret
               mountPath: /kaniko/.docker
           restartPolicy: Never
           volumes:
-          - name: kaniko-secret
+          - name: shared-storage-pv
             persistentVolumeClaim:
-              claimName: jenkins-pv-claim
+              claimName: shared-storage-pvc
+          - name: kaniko-secret
             secret:
                 secretName: dockercred
                 items:
@@ -46,15 +47,17 @@ stages {
         echo env.GIT_LOCAL_BRANCH 
     }
   }
-      stage('Build a gradle project') {
-        steps {
-          sh '''
-          chmod +x gradlew
-          ./gradlew build
-          mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
-          '''
-        }
-      }
+  stage('Build a gradle project') {
+    steps {
+      git 'https://github.com/shuniya0/week6.git'
+      sh '''
+      cd Chapter08/sample1
+      chmod +x gradlew
+      ./gradlew build
+      mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
+      '''
+    }
+  }
         stage('feature') {
             when { 
               expression {
@@ -68,15 +71,19 @@ stages {
                    }
               }
               stage('Build Java Image') {
-                container('kaniko') {
-                  stage('Build a Go project') {
-                    sh '''
-                    echo 'FROM openjdk:8-jre' > Dockerfile
-                    echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
-                    echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
-                    mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
-                    /kaniko/executor --context `pwd` --destination shashwat248/calculator-feature:0.1 
-                    '''
+                steps {
+                  container('kaniko') {
+                    //stage('Build a Go project') {
+                      steps {
+                        sh '''
+                        echo 'FROM openjdk:8-jre' > Dockerfile
+                        echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
+                        echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+                        mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
+                        /kaniko/executor --context `pwd` --destination shashwat248/calculator-feature:0.1 
+                        '''
+                      }
+                    //}
                   }
                 }
               }
@@ -108,15 +115,19 @@ stages {
                    }
               }
               stage('Build Java Image') {
-                container('kaniko') {
-                  stage('Build a Go project') {
-                    sh '''
-                    echo 'FROM openjdk:8-jre' > Dockerfile
-                    echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
-                    echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
-                    mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
-                    /kaniko/executor --context `pwd` --destination shashwat248/calculator:1.0
-                    '''
+                steps {
+                  container('kaniko') {
+                    //stage('Build a Go project') {
+                      steps {
+                        sh '''
+                        echo 'FROM openjdk:8-jre' > Dockerfile
+                        echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
+                        echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+                        mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
+                        /kaniko/executor --context `pwd` --destination shashwat248/calculator:1.0
+                        '''
+                      }
+                    //}
                   }
                 }
               }
