@@ -8,7 +8,10 @@ pipeline {
           containers:
           - name: gradle
             image: gradle:6.3-jdk14
-            command: ["sh", "-c", "chmod 777 /mnt"]
+            command: 
+            - sh
+            - -c
+            - chmod 777 /mnt
             args:
             - 99d
             volumeMounts:
@@ -16,7 +19,10 @@ pipeline {
               mountPath: /mnt
           - name: kaniko
             image: gcr.io/kaniko-project/executor:debug
-            command: ["sh", "-c", "chmod 777 /mnt"]
+            command:
+            - sh
+            - -c
+            - chmod 777 /mnt
             args:
             - 9999999
             volumeMounts:
