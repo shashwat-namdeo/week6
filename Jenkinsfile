@@ -87,7 +87,7 @@ node(POD_LABEL) {
                     ./gradlew checkstyleMain
                     '''
                     publishHTML (target: [
-                      reportDir: 'build/reports/checkstyle',
+                      reportDir: 'week6/build/reports/checkstyle',
                       reportFiles: 'main.html',
                       reportName: "Checkstyle Report"
                     ])
@@ -123,11 +123,13 @@ node(POD_LABEL) {
                 container('gradle') {
                     sh '''
                     pwd
+                    cd week6/
+                    chmod +x gradlew
                     ./gradlew jacocoTestCoverageVerification
                     ./gradlew jacocoTestReport
                     '''
                     publishHTML (target: [
-                    reportDir: 'build/reports/jacoco/test/html',
+                    reportDir: 'week6/build/reports/jacoco/test/html',
                     reportFiles: 'index.html',
                     reportName: "JaCoCo Report"
                     ])
@@ -142,7 +144,7 @@ node(POD_LABEL) {
                     ./gradlew checkstyleMain
                     '''
                     publishHTML (target: [
-                      reportDir: 'build/reports/checkstyle',
+                      reportDir: 'week6/build/reports/checkstyle',
                       reportFiles: 'main.html',
                       reportName: "Checkstyle Report"
                     ])
