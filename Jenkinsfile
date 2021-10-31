@@ -41,7 +41,7 @@ node(POD_LABEL) {
             echo env.GIT_BRANCH
             echo env.GIT_LOCAL_BRANCH
             echo env.BRANCH_NAME
-            //echo scm.branches[0].name
+            echo scm.branches[0].name
         //}
     }
     stage('Build a gradle project') {        
