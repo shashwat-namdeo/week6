@@ -1,22 +1,23 @@
-pipeline {
-  agent {
-    kubernetes {
-      yaml '''
+podTemplate(yaml: '''
         apiVersion: v1
         kind: Pod
         spec:
           containers:
           - name: gradle
             image: gradle:6.3-jdk14
-            command: ["/bin/sh"]
-            args: ["-c", "chmod 777 /mnt", "99d"]
+            command:
+            - sleep
+            args:
+            - 99d
             volumeMounts:
             - name: pvc-7148c7de-0314-427a-8b07-1138f5d4d24d
               mountPath: /mnt
           - name: kaniko
             image: gcr.io/kaniko-project/executor:debug
-            command: ["/bin/sh"]
-            args: ["-c", "chmod 777 /mnt", "9999999"]
+            command:
+            - sleep
+            args:
+            - 99d
             volumeMounts:
             - name: pvc-7148c7de-0314-427a-8b07-1138f5d4d24d
               mountPath: /mnt
@@ -33,40 +34,36 @@ pipeline {
                 items:
                 - key: .dockerconfigjson
                   path: config.json    
-     '''
-    }
-  }
-stages {
-  stage('debug') {
-    steps {
-        echo env.GIT_BRANCH
-        echo env.GIT_LOCAL_BRANCH 
-    }
-  }
-  stage('Build a gradle project') {
-    steps {
-      sh '''
-      chmod +x gradlew
-      ./gradlew build
-      mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
-      '''
-    }
-  }
+''') {
+node(POD_LABEL) {
+    stage('Build a gradle project') {
+        //git 'https://github.com/dlambrig/Continuous-Delivery-with-Docker-and-Jenkins-Second-Edition.git'
+        container('gradle') {
+            stage('Build a gradle project') {
+                sh '''
+                ./gradlew build
+                mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
+                '''
+                }
+            }
+        }
+        stage('debug') {
+            steps {
+                echo env.GIT_BRANCH
+                echo env.GIT_LOCAL_BRANCH 
+            }
+        }
         stage('feature') {
-            when { 
+            when {
               expression {
                 return env.GIT_BRANCH == "origin/feature"
               }
             }
-            stages {
-              stage("Declare Branch") {
-                   steps {
-                    echo "I am a feature branch"
-                   }
-              }
-              stage('Build Java Image') {
-                steps {
-                  container('kaniko') {
+            stage("Declare Branch") {
+                echo "I am a feature branch"
+            }
+            stage('Build Java Image') {
+                container('kaniko') {
                     //stage('Build a Go project') {
                       steps {
                         sh '''
@@ -78,39 +75,35 @@ stages {
                         '''
                       }
                     //}
-                  }
                 }
-              }
-              stage("Clean code test") {
+            }
+            stage("Clean code test") {
                 steps {
-                sh '''
-                pwd
-                ./gradlew checkstyleMain
-                '''
-                publishHTML (target: [
-                  reportDir: 'build/reports/checkstyle',
-                  reportFiles: 'main.html',
-                  reportName: "Checkstyle Report"
-                ])
+                    container('gradle') {
+                        sh '''
+                        pwd
+                        ./gradlew checkstyleMain
+                        '''
+                        publishHTML (target: [
+                          reportDir: 'build/reports/checkstyle',
+                          reportFiles: 'main.html',
+                          reportName: "Checkstyle Report"
+                        ])
+                    }
                 }
-              }
-           }
-      }
+            }
+        }
         stage('main') {
             when {
               expression {
                 return env.GIT_BRANCH == "origin/main"
               }
             }
-            stages {
-              stage("Declare Branch") {
-                   steps {
-                    echo "I am a main branch"
-                   }
-              }
-              stage('Build Java Image') {
-                steps {
-                  container('kaniko') {
+            stage("Declare Branch") {
+                echo "I am a main branch"
+            }
+            stage('Build Java Image') {
+                container('kaniko') {
                     //stage('Build a Go project') {
                       steps {
                         sh '''
@@ -122,37 +115,39 @@ stages {
                         '''
                       }
                     //}
-                  }
                 }
-              }
-              stage("Code coverage") {
-                  steps {
-                  sh '''
-                  pwd
-                  ./gradlew jacocoTestCoverageVerification
-                  ./gradlew jacocoTestReport
-                  '''
-                  publishHTML (target: [
-                    reportDir: 'build/reports/jacoco/test/html',
-                    reportFiles: 'index.html',
-                    reportName: "JaCoCo Report"
-                  ])
+            }
+            stage("Code coverage") {
+                steps {
+                    container('gradle') {
+                        sh '''
+                        pwd
+                        ./gradlew jacocoTestCoverageVerification
+                        ./gradlew jacocoTestReport
+                        '''
+                        publishHTML (target: [
+                        reportDir: 'build/reports/jacoco/test/html',
+                        reportFiles: 'index.html',
+                        reportName: "JaCoCo Report"
+                        ])
+                    }
                 }
-              }
-              stage("Clean code test") {
-                  steps {
-                  sh '''
-                  pwd
-                  ./gradlew checkstyleMain
-                  '''
-                  publishHTML (target: [
-                    reportDir: 'build/reports/checkstyle',
-                    reportFiles: 'main.html',
-                    reportName: "Checkstyle Report"
-                  ])
+            }
+            stage("Clean code test") {
+                steps {
+                    container('gradle') {
+                        sh '''
+                        pwd
+                        ./gradlew checkstyleMain
+                        '''
+                        publishHTML (target: [
+                          reportDir: 'build/reports/checkstyle',
+                          reportFiles: 'main.html',
+                          reportName: "Checkstyle Report"
+                        ])
+                    }
                 }
-              }
             }
         }
-  }
+}
 }
