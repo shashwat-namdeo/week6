@@ -13,7 +13,7 @@ pipeline {
             args:
             - 99d
             volumeMounts:
-            - name: shared-storage-pv
+            - name: pvc-7148c7de-0314-427a-8b07-1138f5d4d24d
               mountPath: /mnt
           - name: kaniko
             image: gcr.io/kaniko-project/executor:debug
@@ -22,15 +22,15 @@ pipeline {
             args:
             - 9999999
             volumeMounts:
-            - name: shared-storage-pv
+            - name: pvc-7148c7de-0314-427a-8b07-1138f5d4d24d
               mountPath: /mnt
             - name: kaniko-secret
               mountPath: /kaniko/.docker
           restartPolicy: Never
           volumes:
-          - name: shared-storage-pv
+          - name: pvc-7148c7de-0314-427a-8b07-1138f5d4d24d
             persistentVolumeClaim:
-              claimName: shared-storage-pvc
+              claimName: jenkins-pv-claim
           - name: kaniko-secret
             secret:
                 secretName: dockercred
