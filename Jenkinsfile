@@ -82,6 +82,8 @@ node(POD_LABEL) {
                 container('gradle') {
                     sh '''
                     pwd
+                    cd week6/
+                    chmod +x gradlew
                     ./gradlew checkstyleMain
                     '''
                     publishHTML (target: [
@@ -135,6 +137,8 @@ node(POD_LABEL) {
                 container('gradle') {
                     sh '''
                     pwd
+                    cd week6/
+                    chmod +x gradlew
                     ./gradlew checkstyleMain
                     '''
                     publishHTML (target: [
