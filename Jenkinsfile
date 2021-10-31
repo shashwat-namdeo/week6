@@ -9,9 +9,7 @@ pipeline {
           - name: gradle
             image: gradle:6.3-jdk14
             command: 
-            - sh
-            - -c
-            - chmod 777 /mnt
+            - sleep
             args:
             - 99d
             volumeMounts:
@@ -20,9 +18,7 @@ pipeline {
           - name: kaniko
             image: gcr.io/kaniko-project/executor:debug
             command:
-            - sh
-            - -c
-            - chmod 777 /mnt
+            - sleep
             args:
             - 9999999
             volumeMounts:
