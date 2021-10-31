@@ -42,6 +42,7 @@ node(POD_LABEL) {
                 sh '''
                 /usr/bin/git clone 'https://github.com/shuniya0/week6.git'
                 chmod +x gradlew
+                cd week6/
                 ./gradlew build
                 mv ./build/libs/calculator-0.0.1-SNAPSHOT.jar /mnt
                 '''
