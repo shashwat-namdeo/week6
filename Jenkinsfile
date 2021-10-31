@@ -36,6 +36,14 @@ podTemplate(yaml: '''
                   path: config.json    
 ''') {
 node(POD_LABEL) {
+    stage('debug') {
+        //steps {
+            echo env.GIT_BRANCH
+            echo env.GIT_LOCAL_BRANCH
+            echo env.BRANCH_NAME
+            //echo scm.branches[0].name
+        //}
+    }
     stage('Build a gradle project') {        
         container('gradle') {
             stage('Build a gradle project') {
@@ -49,65 +57,57 @@ node(POD_LABEL) {
                 }
             }
         }
-        stage('debug') {
-            steps {
-                echo env.GIT_BRANCH
-                echo env.GIT_LOCAL_BRANCH 
-            }
-        }
         stage('feature') {
-            when {
-              expression {
-                return env.GIT_BRANCH == "origin/feature"
-              }
-            }
-            stage("Declare Branch") {
+            //when {
+              //expression {
+                //return env.GIT_BRANCH == "origin/feature"
+              //}
+            //
+            if (env.BRANCH_NAME == 'feature') {
+            //stage("Declare Branch") {
                 echo "I am a feature branch"
-            }
-            stage('Build Java Image') {
+            //}
+            //stage('Build Java Image') {
                 container('kaniko') {
-                    //stage('Build a Go project') {
-                      steps {
-                        sh '''
-                        echo 'FROM openjdk:8-jre' > Dockerfile
-                        echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
-                        echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
-                        mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
-                        /kaniko/executor --context `pwd` --destination shashwat248/calculator-feature:0.1 
-                        '''
-                      }
-                    //}
+                    sh '''
+                    echo 'FROM openjdk:8-jre' > Dockerfile
+                    echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
+                    echo 'ENTRYPOINT ["java", "-jar", "app.jar"]' >> Dockerfile
+                    mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
+                    /kaniko/executor --context `pwd` --destination shashwat248/calculator-feature:0.1 
+                    '''
+                  }
+            //}
+            //stage("Clean code test") {
+                container('gradle') {
+                    sh '''
+                    pwd
+                    ./gradlew checkstyleMain
+                    '''
+                    publishHTML (target: [
+                      reportDir: 'build/reports/checkstyle',
+                      reportFiles: 'main.html',
+                      reportName: "Checkstyle Report"
+                    ])
                 }
+            //}
             }
-            stage("Clean code test") {
-                steps {
-                    container('gradle') {
-                        sh '''
-                        pwd
-                        ./gradlew checkstyleMain
-                        '''
-                        publishHTML (target: [
-                          reportDir: 'build/reports/checkstyle',
-                          reportFiles: 'main.html',
-                          reportName: "Checkstyle Report"
-                        ])
-                    }
-                }
+            else {
+                echo "feature branch not found. Skipping."
             }
         }
         stage('main') {
-            when {
-              expression {
-                return env.GIT_BRANCH == "origin/main"
-              }
-            }
-            stage("Declare Branch") {
+            //when {
+            //  expression {
+            //    return env.GIT_BRANCH == "origin/main"
+            //  }
+            //}
+            if (env.BRANCH_NAME == 'main') {
+            //stage("Declare Branch") {
                 echo "I am a main branch"
-            }
-            stage('Build Java Image') {
+            //}
+            //stage('Build Java Image') {
                 container('kaniko') {
-                    //stage('Build a Go project') {
-                      steps {
                         sh '''
                         echo 'FROM openjdk:8-jre' > Dockerfile
                         echo 'COPY ./calculator-0.0.1-SNAPSHOT.jar app.jar' >> Dockerfile
@@ -115,40 +115,38 @@ node(POD_LABEL) {
                         mv /mnt/calculator-0.0.1-SNAPSHOT.jar .
                         /kaniko/executor --context `pwd` --destination shashwat248/calculator:1.0
                         '''
-                      }
-                    //}
                 }
+            //}
+            //stage("Code coverage") {
+                container('gradle') {
+                    sh '''
+                    pwd
+                    ./gradlew jacocoTestCoverageVerification
+                    ./gradlew jacocoTestReport
+                    '''
+                    publishHTML (target: [
+                    reportDir: 'build/reports/jacoco/test/html',
+                    reportFiles: 'index.html',
+                    reportName: "JaCoCo Report"
+                    ])
+                }
+            //}
+            //stage("Clean code test") {
+                container('gradle') {
+                    sh '''
+                    pwd
+                    ./gradlew checkstyleMain
+                    '''
+                    publishHTML (target: [
+                      reportDir: 'build/reports/checkstyle',
+                      reportFiles: 'main.html',
+                      reportName: "Checkstyle Report"
+                    ])
+                }
+            //}
             }
-            stage("Code coverage") {
-                steps {
-                    container('gradle') {
-                        sh '''
-                        pwd
-                        ./gradlew jacocoTestCoverageVerification
-                        ./gradlew jacocoTestReport
-                        '''
-                        publishHTML (target: [
-                        reportDir: 'build/reports/jacoco/test/html',
-                        reportFiles: 'index.html',
-                        reportName: "JaCoCo Report"
-                        ])
-                    }
-                }
-            }
-            stage("Clean code test") {
-                steps {
-                    container('gradle') {
-                        sh '''
-                        pwd
-                        ./gradlew checkstyleMain
-                        '''
-                        publishHTML (target: [
-                          reportDir: 'build/reports/checkstyle',
-                          reportFiles: 'main.html',
-                          reportName: "Checkstyle Report"
-                        ])
-                    }
-                }
+            else {
+                echo 'main branch not found. Skipping.'
             }
         }
 }
